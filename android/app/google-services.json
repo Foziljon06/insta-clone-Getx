@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "10442192050",
+    "project_id": "instagram-b2590",
+    "storage_bucket": "instagram-b2590.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:10442192050:android:c5183fb5c17e2e4dde05ab",
+        "android_client_info": {
+          "package_name": "com.example.instagram"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyCDt3kl8qOFVKI-go2_xLK2cqsMHthLg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
