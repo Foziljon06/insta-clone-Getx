@@ -1,8 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/instance_manager.dart';
+import 'package:instagram/controllers/like_controller.dart';
 import '../models/post_model.dart';
-import '../services/db_service.dart';
-import '../services/utils_servise.dart';
 
 class MyLikesPage extends StatefulWidget {
   const MyLikesPage({Key? key}) : super(key: key);
@@ -12,49 +13,13 @@ class MyLikesPage extends StatefulWidget {
 }
 
 class _MyLikesPageState extends State<MyLikesPage> {
-  bool isLoading = false;
-  List<Post> items = [];
 
-  void _apiLoadLikes() {
-    setState(() {
-      isLoading = true;
-    });
-    DBService.loadLikes().then((value) => {
-      _resLoadPost(value),
-    });
-  }
+  final _controller=Get.find<LikesController>();
 
-  void _resLoadPost(List<Post> posts) {
-    setState(() {
-      items = posts;
-      isLoading = false;
-    });
-  }
-
-  void _apiPostUnLike(Post post) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    await DBService.likePost(post, false);
-    _apiLoadLikes();
-  }
-  _dialogRemovePost(Post post) async {
-    var result = await Utils.dialogCommon(context, "Instagram", "Do you want to detele this post?", false);
-
-    if (result) {
-      setState(() {
-        isLoading = true;
-      });
-      DBService.removePost(post).then((value) => {
-        _apiLoadLikes(),
-      });
-    }
-  }
   @override
   void initState() {
     super.initState();
-    _apiLoadLikes();
+    _controller.apiLoadLikes();
   }
 
   @override
@@ -70,21 +35,25 @@ class _MyLikesPageState extends State<MyLikesPage> {
               color: Colors.black, fontFamily: 'Billabong', fontSize: 30),
         ),
       ),
-      body: Stack(
-        children: [
-          ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (ctx, index) {
-              return _itemOfPost(items[index]);
-            },
-          ),
-          isLoading
-              ? const Center(
-            child: CircularProgressIndicator(),
-          )
-              : const SizedBox.shrink(),
-        ],
-      ),
+      body: GetBuilder<LikesController>(
+        builder: (context){
+          return Stack(
+            children: [
+              ListView.builder(
+                itemCount: _controller.items.length,
+                itemBuilder: (ctx, index) {
+                  return _itemOfPost(_controller.items[index]);
+                },
+              ),
+              _controller.isLoading
+                  ? const Center(
+                child: CircularProgressIndicator(),
+              )
+                  : const SizedBox.shrink(),
+            ],
+          );
+        },
+      )
     );
   }
 
@@ -143,7 +112,7 @@ class _MyLikesPageState extends State<MyLikesPage> {
                     ? IconButton(
                   icon: const Icon(Icons.more_horiz),
                   onPressed: () {
-                    _dialogRemovePost(post);
+                    _controller.dialogRemovePost(post,context);
                   },
                 )
                     : const SizedBox.shrink(),
@@ -171,7 +140,7 @@ class _MyLikesPageState extends State<MyLikesPage> {
                 children: [
                   IconButton(
                     onPressed: () {
-                      _apiPostUnLike(post);
+                      _controller.apiPostUnLike(post);
                     },
                     icon: post.liked
                         ? const Icon(

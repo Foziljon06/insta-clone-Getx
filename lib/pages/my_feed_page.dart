@@ -1,6 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:instagram/controllers/feed_controller.dart';
 import '../models/post_model.dart';
 import '../services/db_service.dart';
 import '../services/utils_servise.dart';
@@ -15,66 +18,13 @@ class MyFeedPage extends StatefulWidget {
 }
 
 class _MyFeedPageState extends State<MyFeedPage> {
-  bool isLoading = false;
-  List<Post> items = [];
 
-  void _apiPostLike(Post post) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    await DBService.likePost(post, true);
-    setState(() {
-      isLoading = false;
-      post.liked = true;
-    });
-  }
-
-  void _apiPostUnLike(Post post) async {
-    setState(() {
-      isLoading = true;
-    });
-
-    await DBService.likePost(post, false);
-    setState(() {
-      isLoading = false;
-      post.liked = false;
-    });
-  }
-
-  _apiLoadFeeds() {
-    setState(() {
-      isLoading = true;
-    });
-    DBService.loadFeeds().then((value) => {
-      _resLoadFeeds(value),
-    });
-  }
-
-  _resLoadFeeds(List<Post> posts) {
-    setState(() {
-      items = posts;
-      isLoading = false;
-    });
-  }
+  final _controller=Get.find<FeedController>();
 
   @override
   void initState() {
     super.initState();
-    _apiLoadFeeds();
-  }
-
-  _dialogRemovePost(Post post) async {
-    var result = await Utils.dialogCommon(context, "Instagram", "Do you want to detele this post?", false);
-
-    if (result) {
-      setState(() {
-        isLoading = true;
-      });
-      DBService.removePost(post).then((value) => {
-        _apiLoadFeeds(),
-      });
-    }
+    _controller.apiLoadFeeds();
   }
 
   @override
@@ -100,20 +50,24 @@ class _MyFeedPageState extends State<MyFeedPage> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (ctx, index) {
-              return _itemOfPost(items[index]);
-            },
-          ),
-          isLoading
-              ? const Center(
-            child: CircularProgressIndicator(),
-          )
-              : const SizedBox.shrink(),
-        ],
+      body: GetBuilder<FeedController>(
+        builder: (context){
+          return Stack(
+            children: [
+              ListView.builder(
+                itemCount: _controller.items.length,
+                itemBuilder: (ctx, index) {
+                  return _itemOfPost(_controller.items[index]);
+                },
+              ),
+              _controller.isLoading
+                  ? const Center(
+                child: CircularProgressIndicator(),
+              )
+                  : const SizedBox.shrink(),
+            ],
+          );
+        },
       ),
     );
   }
@@ -174,7 +128,7 @@ class _MyFeedPageState extends State<MyFeedPage> {
                     ? IconButton(
                   icon: const Icon(Icons.more_horiz),
                   onPressed: () {
-                    _dialogRemovePost(post);
+                    _controller.dialogRemovePost(post,context);
                   },
                 )
                     : const SizedBox.shrink(),
@@ -188,9 +142,9 @@ class _MyFeedPageState extends State<MyFeedPage> {
           GestureDetector(
             onDoubleTap: (){
               if (!post.liked) {
-                _apiPostLike(post);
+                _controller.apiPostLike(post);
               } else {
-                _apiPostUnLike(post);
+                _controller.apiPostUnLike(post);
               }
             },
             child: CachedNetworkImage(
@@ -212,9 +166,9 @@ class _MyFeedPageState extends State<MyFeedPage> {
                   IconButton(
                     onPressed: () {
                       if (!post.liked) {
-                        _apiPostLike(post);
+                        _controller.apiPostLike(post);
                       } else {
-                        _apiPostUnLike(post);
+                        _controller.apiPostUnLike(post);
                       }
                     },
                     icon: post.liked

@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:get/instance_manager.dart';
+import 'package:instagram/controllers/home_controller.dart';
 import 'my_feed_page.dart';
 import 'my_likes_page.dart';
 import 'my_profile_page.dart';
@@ -16,45 +19,50 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
-  PageController? _pageController;
-  int _currentTap = 0;
+  final _controller = Get.find<HomeController>();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _pageController = PageController();
+    _controller.pageController = PageController();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        children: [
-          MyFeedPage(pageController: _pageController,),
-          const MySearchPage(),
-          MyUploadPage(pageController: _pageController,),
-          const MyLikesPage(),
-          const MyProfilePage(),
-        ],
-        onPageChanged: (int index){
-          setState(() {
-            _currentTap = index;
-          });
+      body: GetBuilder<HomeController>(
+        builder: (context) {
+          return PageView(
+            controller: _controller.pageController,
+            children: [
+              MyFeedPage(
+                pageController: _controller.pageController,
+              ),
+              const MySearchPage(),
+              MyUploadPage(
+                pageController: _controller.pageController,
+              ),
+              const MyLikesPage(),
+              const MyProfilePage(),
+            ],
+            onPageChanged: (int index) {
+              setState(() {
+                _controller.currentTap = index;
+              });
+            },
+          );
         },
       ),
-
       bottomNavigationBar: CupertinoTabBar(
-        onTap: (int index){
+        onTap: (int index) {
           setState(() {
-            _currentTap = index;
-            _pageController!.animateToPage(index,
+            _controller.currentTap = index;
+            _controller.pageController!.animateToPage(index,
                 duration: Duration(milliseconds: 200), curve: Curves.easeIn);
           });
         },
-        currentIndex: _currentTap,
+        currentIndex: _controller.currentTap,
         activeColor: Color.fromRGBO(193, 53, 132, 1),
         items: const [
           BottomNavigationBarItem(
